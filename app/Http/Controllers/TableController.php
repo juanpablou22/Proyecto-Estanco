@@ -9,7 +9,7 @@ use App\Models\Sale;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Barryvdh\DomPDF\Facade\Pdf; // IMPORTANTE: Debes tener instalada la librería dompdf
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class TableController extends Controller
 {
@@ -134,36 +134,58 @@ class TableController extends Controller
     }
 
     /**
-     * Muestra el reporte histórico de ventas con totales acumulados y cuadre de caja.
+     * Muestra el reporte histórico de ventas con FILTROS DE FECHA y cuadre de caja.
      */
-    public function salesReport()
+    public function salesReport(Request $request)
     {
-        $sales = Sale::orderBy('created_at', 'desc')->get();
+        // 1. Obtener las fechas del filtro o usar el día actual por defecto
+        $fecha_inicio = $request->get('fecha_inicio', now()->format('Y-m-d'));
+        $fecha_fin = $request->get('fecha_fin', now()->format('Y-m-d'));
+
+        // 2. Consulta filtrada de ventas
+        $sales = Sale::whereDate('created_at', '>=', $fecha_inicio)
+                     ->whereDate('created_at', '<=', $fecha_fin)
+                     ->orderBy('created_at', 'desc')
+                     ->get();
+
         $totalGeneral = $sales->sum('total');
 
-        $totalesPorMetodo = Sale::select('payment_method', DB::raw('SUM(total) as total'))
+        // 3. Cuadre de caja filtrado por el mismo rango
+        $totalesPorMetodo = Sale::whereDate('created_at', '>=', $fecha_inicio)
+                                ->whereDate('created_at', '<=', $fecha_fin)
+                                ->select('payment_method', DB::raw('SUM(total) as total'))
                                 ->groupBy('payment_method')
                                 ->get();
 
-        return view('sales.report', compact('sales', 'totalGeneral', 'totalesPorMetodo'));
+        return view('sales.report', compact('sales', 'totalGeneral', 'totalesPorMetodo', 'fecha_inicio', 'fecha_fin'));
     }
 
     /**
-     * ANEXO: Genera y descarga el reporte de ventas en formato PDF.
+     * ANEXO: Genera y descarga el reporte de ventas en formato PDF respetando los filtros.
      */
-    public function downloadPDF()
+    public function downloadPDF(Request $request)
     {
-        $sales = Sale::orderBy('created_at', 'desc')->get();
+        // 1. Capturar los filtros enviados por la URL
+        $fecha_inicio = $request->get('fecha_inicio', now()->format('Y-m-d'));
+        $fecha_fin = $request->get('fecha_fin', now()->format('Y-m-d'));
+
+        // 2. Obtener datos filtrados
+        $sales = Sale::whereDate('created_at', '>=', $fecha_inicio)
+                     ->whereDate('created_at', '<=', $fecha_fin)
+                     ->orderBy('created_at', 'desc')
+                     ->get();
+
         $totalGeneral = $sales->sum('total');
 
-        $totalesPorMetodo = Sale::select('payment_method', DB::raw('SUM(total) as total'))
+        $totalesPorMetodo = Sale::whereDate('created_at', '>=', $fecha_inicio)
+                                ->whereDate('created_at', '<=', $fecha_fin)
+                                ->select('payment_method', DB::raw('SUM(total) as total'))
                                 ->groupBy('payment_method')
                                 ->get();
 
-        // Cargamos una vista especial diseñada para PDF
-        $pdf = Pdf::loadView('sales.pdf_report', compact('sales', 'totalGeneral', 'totalesPorMetodo'));
+        // 3. Generar el PDF
+        $pdf = Pdf::loadView('sales.pdf_report', compact('sales', 'totalGeneral', 'totalesPorMetodo', 'fecha_inicio', 'fecha_fin'));
 
-        // Retornamos la descarga del archivo
-        return $pdf->download('reporte-ventas-' . now()->format('d-m-Y') . '.pdf');
+        return $pdf->download("reporte-ventas-{$fecha_inicio}-a-{$fecha_fin}.pdf");
     }
 }
