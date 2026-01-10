@@ -9,10 +9,25 @@
 </head>
 <body class="bg-light">
     <div class="container mt-5">
-        <div class="mb-4">
+        <div class="mb-4 d-flex justify-content-between align-items-center">
             <a href="{{ route('tables.index') }}" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i> Volver a Mesas
             </a>
+
+            @if(count($currentOrders) > 0)
+                <form action="{{ route('tables.close', $table->id) }}" method="POST" class="d-flex gap-2 align-items-center" onsubmit="return confirm('¿Deseas registrar el pago y liberar la mesa?')">
+                    @csrf
+                    <select name="payment_method" class="form-select border-success" style="width: auto;" required>
+                        <option value="Efectivo">💵 Efectivo</option>
+                        <option value="Nequi">📱 Nequi</option>
+                        <option value="Transferencia">🏦 Transferencia</option>
+                        <option value="Tarjeta">💳 Tarjeta</option>
+                    </select>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-cash-stack"></i> Finalizar Venta
+                    </button>
+                </form>
+            @endif
         </div>
 
         @if(session('success'))
@@ -67,12 +82,13 @@
                         <h5 class="mb-0">Cuenta Actual - {{ $table->name }}</h5>
                     </div>
                     <div class="card-body">
-                        <table class="table table-hover">
+                        <table class="table table-hover align-middle">
                             <thead>
                                 <tr>
                                     <th>Cant.</th>
                                     <th>Producto</th>
                                     <th class="text-end">Subtotal</th>
+                                    <th class="text-center">Acción</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -85,11 +101,20 @@
                                     <tr>
                                         <td>{{ $order->quantity }}</td>
                                         <td>{{ $order->product->name }}</td>
-                                        <td class="text-end">${{ number_format($subtotal, 0) }}</td>
+                                        <td class="text-end font-monospace">${{ number_format($subtotal, 0) }}</td>
+                                        <td class="text-center">
+                                            <form action="{{ route('orders.remove', $order->id) }}" method="POST">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar error" onclick="return confirm('¿Eliminar este producto?')">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="3" class="text-center text-muted py-4">
+                                        <td colspan="4" class="text-center text-muted py-4">
                                             No hay productos en esta cuenta todavía.
                                         </td>
                                     </tr>

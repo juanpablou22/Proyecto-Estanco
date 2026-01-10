@@ -11,11 +11,18 @@
     <div class="container mt-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>Gestión de Mesas</h2>
-            <form action="{{ route('tables.store') }}" method="POST" class="d-flex gap-2">
-                @csrf
-                <input type="text" name="name" class="form-control" placeholder="Nombre de mesa (ej: Mesa 5)" required>
-                <button type="submit" class="btn btn-primary">Añadir Mesa</button>
-            </form>
+
+            <div class="d-flex gap-3">
+                <a href="{{ route('sales.report') }}" class="btn btn-warning shadow-sm">
+                    <i class="bi bi-graph-up"></i> Ver Reporte de Ventas
+                </a>
+
+                <form action="{{ route('tables.store') }}" method="POST" class="d-flex gap-2">
+                    @csrf
+                    <input type="text" name="name" class="form-control" placeholder="Nombre de mesa (ej: Mesa 5)" required>
+                    <button type="submit" class="btn btn-primary">Añadir Mesa</button>
+                </form>
+            </div>
         </div>
 
         @if(session('success'))
@@ -52,7 +59,7 @@
 
                                     <form action="{{ route('tables.close', $table->id) }}" method="POST">
                                         @csrf
-                                        <button type="submit" class="btn btn-sm btn-outline-success w-100" onclick="return confirm('¿Seguro que deseas liberar la mesa?')">
+                                        <button type="submit" class="btn btn-sm btn-outline-success w-100" onclick="return confirm('¿Seguro que deseas cobrar y liberar la mesa?')">
                                             <i class="bi bi-check-circle"></i> Liberar Mesa
                                         </button>
                                     </form>

@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Table;
 use App\Models\Product;
-use App\Models\Order; // Anexamos el modelo Order
+use App\Models\Order;
+use App\Models\Sale;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf; // IMPORTANTE: Debes tener instalada la librería dompdf
 
 class TableController extends Controller
 {
@@ -51,10 +54,8 @@ class TableController extends Controller
      */
     public function show(Table $table)
     {
-        // Traemos los productos con stock para el selector
         $products = Product::where('stock', '>', 0)->get();
 
-        // ANEXO: Traemos los pedidos actuales de esta mesa con su relación de producto
         $currentOrders = Order::where('table_id', $table->id)
                             ->with('product')
                             ->get();
@@ -78,33 +79,91 @@ class TableController extends Controller
             return redirect()->back()->with('error', 'No hay suficiente stock de ' . $product->name);
         }
 
-        // ANEXO: Guardamos el registro del pedido en la base de datos
         Order::create([
             'table_id' => $table->id,
             'product_id' => $product->id,
             'quantity' => $request->quantity,
-            'price' => $product->price // Guardamos el precio actual por si cambia después
+            'price' => $product->price
         ]);
 
-        // Descontar del inventario automáticamente
         $product->decrement('stock', $request->quantity);
 
         return redirect()->back()->with('success', 'Producto añadido a la cuenta.');
     }
 
     /**
-     * Cambia el estado de la mesa a 'disponible' y limpia la cuenta.
+     * Elimina un producto del pedido y devuelve la cantidad al stock.
      */
-    public function close(Table $table)
+    public function removeProduct(Order $order)
     {
-        // ANEXO: Al liberar la mesa, borramos los pedidos asociados
-        // (En un sistema avanzado, aquí los marcarías como "pagados" en otra tabla)
-        Order::where('table_id', $table->id)->delete();
+        $product = Product::find($order->product_id);
+
+        if ($product) {
+            $product->increment('stock', $order->quantity);
+        }
+
+        $order->delete();
+
+        return redirect()->back()->with('success', 'Producto eliminado y stock restaurado.');
+    }
+
+    /**
+     * Cierra la cuenta, REGISTRA LA VENTA con el método de pago y libera la mesa.
+     */
+    public function close(Request $request, Table $table)
+    {
+        $totalCuenta = Order::where('table_id', $table->id)
+                        ->select(DB::raw('SUM(quantity * price) as total'))
+                        ->first()->total;
+
+        if ($totalCuenta > 0) {
+            Sale::create([
+                'table_name' => $table->name,
+                'total' => $totalCuenta,
+                'payment_method' => $request->payment_method ?? 'Efectivo'
+            ]);
+
+            Order::where('table_id', $table->id)->delete();
+        }
 
         $table->update([
             'status' => 'disponible'
         ]);
 
-        return redirect()->route('tables.index')->with('success', 'La ' . $table->name . ' ha sido liberada y la cuenta cerrada.');
+        return redirect()->route('tables.index')->with('success', 'Venta registrada con éxito y mesa liberada.');
+    }
+
+    /**
+     * Muestra el reporte histórico de ventas con totales acumulados y cuadre de caja.
+     */
+    public function salesReport()
+    {
+        $sales = Sale::orderBy('created_at', 'desc')->get();
+        $totalGeneral = $sales->sum('total');
+
+        $totalesPorMetodo = Sale::select('payment_method', DB::raw('SUM(total) as total'))
+                                ->groupBy('payment_method')
+                                ->get();
+
+        return view('sales.report', compact('sales', 'totalGeneral', 'totalesPorMetodo'));
+    }
+
+    /**
+     * ANEXO: Genera y descarga el reporte de ventas en formato PDF.
+     */
+    public function downloadPDF()
+    {
+        $sales = Sale::orderBy('created_at', 'desc')->get();
+        $totalGeneral = $sales->sum('total');
+
+        $totalesPorMetodo = Sale::select('payment_method', DB::raw('SUM(total) as total'))
+                                ->groupBy('payment_method')
+                                ->get();
+
+        // Cargamos una vista especial diseñada para PDF
+        $pdf = Pdf::loadView('sales.pdf_report', compact('sales', 'totalGeneral', 'totalesPorMetodo'));
+
+        // Retornamos la descarga del archivo
+        return $pdf->download('reporte-ventas-' . now()->format('d-m-Y') . '.pdf');
     }
 }

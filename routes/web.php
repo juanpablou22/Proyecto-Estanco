@@ -21,3 +21,6 @@ Route::post('/tables/{table}/close', [TableController::class, 'close'])->name('t
 // Lógica de Pedidos (AQUÍ ESTÁ LA SOLUCIÓN AL ERROR)
 Route::get('/tables/{table}/show', [TableController::class, 'show'])->name('tables.show');
 Route::post('/tables/{table}/add-product', [TableController::class, 'addProduct'])->name('tables.add-product');
+Route::delete('/orders/{order}', [TableController::class, 'removeProduct'])->name('orders.remove');
+Route::get('/sales-report', [TableController::class, 'salesReport'])->name('sales.report');
+Route::get('/sales/report/pdf', [TableController::class, 'downloadPDF'])->name('sales.pdf');
