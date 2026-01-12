@@ -9,11 +9,13 @@ use Illuminate\Http\Request;
 class ProductController extends Controller
 {
     /**
-     * Muestra la lista de productos del estanco.
+     * Muestra la lista de productos y gestión de inventario.
+     * He unificado la lógica para que sirva como panel de control.
      */
     public function index()
     {
         $products = Product::all();
+        // Usamos la vista de inventario que diseñamos para tener los indicadores de stock
         return view('products.index', compact('products'));
     }
 
@@ -47,7 +49,6 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        // Carga la vista edit.blade.php pasando el producto seleccionado
         return view('products.edit', compact('product'));
     }
 
@@ -62,7 +63,6 @@ class ProductController extends Controller
             'stock' => 'required|integer',
         ]);
 
-        // Actualiza los datos con lo que viene del formulario
         $product->update($request->all());
 
         return redirect()->route('products.index')
@@ -78,5 +78,14 @@ class ProductController extends Controller
 
         return redirect()->route('products.index')
                          ->with('success', 'Producto eliminado del sistema.');
+    }
+
+    /**
+     * ANEXO: Método específico si prefieres separar la vista simple de la de gestión.
+     */
+    public function inventory()
+    {
+        $products = Product::all();
+        return view('inventory.index', compact('products'));
     }
 }

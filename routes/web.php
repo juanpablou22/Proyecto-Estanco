@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TableController;
-//LOGICA LOGIN 
+//LOGICA LOGIN
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
@@ -21,6 +21,8 @@ Route::get('/', function () {
 
 // Rutas para Productos
 Route::resource('products', ProductController::class);
+// Rutas para Inventario
+Route::get('/inventory', [App\Http\Controllers\ProductController::class, 'inventory'])->name('inventory.index');
 
 // Rutas base para Mesas
 Route::resource('tables', TableController::class);
