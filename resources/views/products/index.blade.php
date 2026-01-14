@@ -3,122 +3,206 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario - Estanco POS</title>
+    <title>Inventario Profesional - Estanco POS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
     <style>
         body {
-            /* Aplicamos el fondo con una capa de oscuridad del 70% */
-            background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
-                              url('/images/fondo inventario.png');
+            /* Fondo de bar con alta oscuridad para resaltar el cristal */
+            background-image: linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85)),
+                              url('https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?q=80&w=2070&auto=format&fit=crop');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
-            background-repeat: no-repeat;
             min-height: 100vh;
+            color: white;
+            font-family: 'Segoe UI', Roboto, sans-serif;
         }
 
-        /* Títulos en blanco para resaltar sobre el fondo oscuro */
-        .navbar-brand, h5.text-dark {
-            color: white !important;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
-        }
-
-        /* Tarjeta con efecto Glassmorphism (Cristal) */
-        .card {
-            background: rgba(255, 255, 255, 0.92) !important;
-            backdrop-filter: blur(10px);
-            border-radius: 15px !important;
+        /* Efecto Glassmorphism */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03) !important;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px !important;
             overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
         }
 
-        .card-header {
-            border-bottom: 1px solid rgba(0,0,0,0.1) !important;
+        .navbar {
+            background: rgba(0, 0, 0, 0.5) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* Ajuste de sombras para los botones */
-        .btn-primary {
-            box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+        /* Estilo de la Tabla */
+        .table {
+            color: rgba(255,255,255,0.9) !important;
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffc107; /* Dorado */
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1.5px;
+            font-weight: 700;
+            border: none;
+            padding: 20px;
+        }
+
+        .table tbody td {
+            padding: 20px;
+            border-color: rgba(255, 255, 255, 0.05);
+            vertical-align: middle;
+        }
+
+        /* Badges de Stock Personalizados */
+        .stock-badge {
+            font-size: 1rem;
+            font-weight: 800;
+            padding: 8px 15px;
+            border-radius: 12px;
+        }
+
+        .status-pill {
+            font-size: 0.7rem;
+            padding: 5px 10px;
+            border-radius: 50px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        /* Footer de Valor Total */
+        .inventory-footer {
+            background: rgba(255, 193, 7, 0.1);
+            border-top: 1px solid rgba(255, 193, 7, 0.2);
+            padding: 25px;
+        }
+
+        .total-amount {
+            color: #ffc107;
+            font-size: 1.8rem;
+            font-weight: 800;
+            text-shadow: 0 0 15px rgba(255, 193, 7, 0.3);
+        }
+
+        .btn-gold {
+            background: linear-gradient(45deg, #ffc107, #ff9800);
+            border: none;
+            color: black;
+            font-weight: 700;
+            border-radius: 12px;
+            transition: 0.3s;
+        }
+
+        .btn-gold:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3);
+            color: black;
+        }
+
+        .btn-outline-glass {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 12px;
+        }
+
+        .btn-outline-glass:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffc107;
         }
     </style>
 </head>
 <body>
 
-    <nav class="navbar navbar-dark bg-dark mb-4 shadow">
+    <nav class="navbar navbar-dark mb-4 shadow">
         <div class="container">
             <div class="d-flex align-items-center">
-                <a href="{{ route('tables.index') }}" class="btn btn-outline-light btn-sm me-3">
-                    <i class="bi bi-arrow-left"></i> Volver
+                <a href="{{ route('home') }}" class="btn btn-outline-glass btn-sm me-3">
+                    <i class="bi bi-arrow-left"></i> Panel
                 </a>
-                <span class="navbar-brand mb-0 h1 text-white">Sistema de Control - Estanco</span>
+                <span class="navbar-brand mb-0 h2 fw-bold">CONTROL DE INVENTARIO</span>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ route('inventory.pdf') }}" class="btn btn-outline-danger">
+                    <i class="bi bi-file-earmark-pdf"></i> Reporte
+                </a>
             </div>
         </div>
     </nav>
 
     <div class="container mb-5">
-        <div class="card shadow border-0">
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-box-seam me-2"></i>Inventario de Productos</h5>
-                <a href="{{ route('products.create') }}" class="btn btn-primary shadow-sm">
-                    <i class="bi bi-plus-lg"></i> Agregar Producto
+        <div class="glass-card card border-0 shadow-lg">
+            <div class="card-header bg-transparent py-4 px-4 border-0 d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0 fw-bold">Existencias en Tiempo Real</h4>
+                    <small class="text-white-50 small">Vigila el stock y el capital de tu estanco</small>
+                </div>
+                <a href="{{ route('products.create') }}" class="btn btn-gold px-4">
+                    <i class="bi bi-plus-lg me-2"></i> Nuevo Registro
                 </a>
             </div>
-            <div class="card-body">
 
+            <div class="card-body p-0">
                 @if(session('success'))
-                    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
-                        <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <div class="alert alert-success mx-4 border-0 bg-success text-white bg-opacity-25" role="alert">
+                        <i class="bi bi-check-all me-2"></i> {{ session('success') }}
                     </div>
                 @endif
 
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle border-top">
-                        <thead class="table-light">
+                    <table class="table table-hover align-middle">
+                        <thead>
                             <tr>
-                                <th class="ps-3">Nombre del Producto</th>
-                                <th>Descripción</th>
-                                <th>Precio</th>
-                                <th>Stock</th>
-                                <th>Estado</th>
+                                <th class="ps-4">Detalle del Producto</th>
+                                <th>Precio Venta</th>
+                                <th class="text-center">Existencias</th>
+                                <th>Estado de Stock</th>
                                 <th class="text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse ($products as $product)
                             <tr>
-                                <td class="ps-3 fw-bold text-dark">{{ $product->name }}</td>
-                                <td class="text-muted small">{{ $product->description ?? 'Sin descripción' }}</td>
-                                <td class="fw-semibold text-dark">${{ number_format($product->price, 0, ',', '.') }}</td>
-                                <td>
-                                    @if($product->stock <= 0)
-                                        <span class="fs-6 fw-bold text-danger">0</span>
-                                    @elseif($product->stock <= 10)
-                                        <span class="fs-6 fw-bold text-warning">{{ $product->stock }}</span>
-                                    @else
-                                        <span class="fs-6 fw-bold text-success">{{ $product->stock }}</span>
-                                    @endif
+                                <td class="ps-4">
+                                    <div class="fw-bold fs-5">{{ $product->name }}</div>
+                                    <div class="text-white-50 small">{{ $product->description ?? 'Sin especificaciones' }}</div>
                                 </td>
-                                <td>
-                                    @if($product->stock <= 0)
-                                        <span class="badge bg-danger">Agotado</span>
-                                    @elseif($product->stock <= 10)
-                                        <span class="badge bg-warning text-dark">Stock Bajo</span>
-                                    @else
-                                        <span class="badge bg-success text-white">Disponible</span>
-                                    @endif
+                                <td class="fw-bold text-warning fs-5">
+                                    ${{ number_format($product->price, 0, ',', '.') }}
                                 </td>
                                 <td class="text-center">
-                                    <div class="btn-group shadow-sm" role="group">
-                                        <a href="{{ route('products.edit', $product->id) }}" class="btn btn-sm btn-outline-dark" title="Editar">
-                                            <i class="bi bi-pencil-square"></i>
+                                    @if($product->stock <= 0)
+                                        <span class="stock-badge text-danger">0</span>
+                                    @elseif($product->stock <= 10)
+                                        <span class="stock-badge text-warning">{{ $product->stock }}</span>
+                                    @else
+                                        <span class="stock-badge text-success">{{ $product->stock }}</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($product->stock <= 0)
+                                        <span class="status-pill bg-danger text-white">Agotado</span>
+                                    @elseif($product->stock <= 10)
+                                        <span class="status-pill bg-warning text-dark">Stock Bajo</span>
+                                    @else
+                                        <span class="status-pill bg-success text-white">Saludable</span>
+                                    @endif
+                                </td>
+                                <td class="text-center pe-4">
+                                    <div class="btn-group shadow-sm">
+                                        <a href="{{ route('products.edit', $product->id) }}" class="btn btn-sm btn-outline-glass" title="Editar">
+                                            <i class="bi bi-pencil-fill"></i>
                                         </a>
                                         <form action="{{ route('products.destroy', $product->id) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que deseas eliminar este producto?')" title="Eliminar">
-                                                <i class="bi bi-trash"></i>
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-outline-danger ms-1" onclick="return confirm('¿Borrar producto?')">
+                                                <i class="bi bi-trash3"></i>
                                             </button>
                                         </form>
                                     </div>
@@ -126,9 +210,9 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="6" class="text-center py-5 text-muted">
-                                    <i class="bi bi-info-circle fs-2 d-block mb-2 text-dark"></i>
-                                    No hay productos registrados aún.
+                                <td colspan="5" class="text-center py-5">
+                                    <i class="bi bi-box2 fs-1 text-white-50"></i>
+                                    <p class="mt-3">Aún no hay productos cargados en el sistema.</p>
                                 </td>
                             </tr>
                             @endforelse
@@ -136,6 +220,18 @@
                     </table>
                 </div>
             </div>
+
+            @if($products->count() > 0)
+            <div class="inventory-footer d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-white-50 small text-uppercase fw-bold">Capital Total Invertido:</span>
+                    <div class="total-amount">${{ number_format($valorTotalBodega ?? 0, 0, ',', '.') }}</div>
+                </div>
+                <div class="text-end">
+                    <i class="bi bi-cash-coin text-warning fs-1 opacity-50"></i>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 

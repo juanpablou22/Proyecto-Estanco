@@ -5,17 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf; // Importamos la librería para el PDF
 
 class ProductController extends Controller
 {
     /**
-     * Muestra la lista de productos y gestión de inventario.
-     * He unificado la lógica para que sirva como panel de control.
+     * Muestra la lista de productos (Gestión CRUD).
      */
     public function index()
     {
-        $products = Product::all();
-        // Usamos la vista de inventario que diseñamos para tener los indicadores de stock
+        $products = Product::orderBy('name')->get();
         return view('products.index', compact('products'));
     }
 
@@ -28,14 +27,14 @@ class ProductController extends Controller
     }
 
     /**
-     * Guarda un nuevo producto en la base de datos (Inventario).
+     * Guarda un nuevo producto en la base de datos.
      */
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required',
-            'price' => 'required|numeric',
-            'stock' => 'required|integer',
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
         ]);
 
         Product::create($request->all());
@@ -45,7 +44,7 @@ class ProductController extends Controller
     }
 
     /**
-     * Muestra el formulario para editar un producto existente.
+     * Muestra el formulario para editar un producto.
      */
     public function edit(Product $product)
     {
@@ -81,11 +80,33 @@ class ProductController extends Controller
     }
 
     /**
-     * ANEXO: Método específico si prefieres separar la vista simple de la de gestión.
+     * VISTA DE INVENTARIO PROFESIONAL
+     * Aquí corregimos la ruta de la vista para que no te dé error 404.
      */
     public function inventory()
     {
         $products = Product::all();
-        return view('inventory.index', compact('products'));
+
+        // Calculamos el valor total de la mercancía para el dueño
+        $valorTotalBodega = $products->sum(function($product) {
+            return $product->stock * $product->price;
+        });
+
+        // IMPORTANTE: Ruta corregida según tu estructura de carpetas
+        return view('products.inventory.index', compact('products', 'valorTotalBodega'));
+    }
+
+    /**
+     * GENERAR REPORTE PDF DEL INVENTARIO
+     */
+    public function generateInventoryPDF()
+    {
+        $products = Product::orderBy('name')->get();
+        $valorTotal = $products->sum(fn($p) => $p->stock * $p->price);
+
+        // Cargamos la vista del reporte (Debes crearla en resources/views/products/inventory/pdf.blade.php)
+        $pdf = Pdf::loadView('products.inventory.pdf', compact('products', 'valorTotal'));
+
+        return $pdf->download('Inventario_Total_'.date('d-m-Y').'.pdf');
     }
 }
