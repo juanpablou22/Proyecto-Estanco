@@ -54,7 +54,7 @@
 
                 <form action="{{ route('tables.store') }}" method="POST" class="d-flex gap-2">
                     @csrf
-                    <input type="text" name="name" class="form-control" placeholder="Nombre de mesa" required>
+                    <input type="text" name="name" class="form-control" placeholder="Añade Mesa o Cliente" required>
                     <button type="submit" class="btn btn-primary shadow">Añadir</button>
                 </form>
             </div>
