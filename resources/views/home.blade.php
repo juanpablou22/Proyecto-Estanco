@@ -118,14 +118,7 @@
                 </a>
             </div>
 
-            <div class="col-6 col-md-4 col-lg-3">
-                <a href="{{ route('inventory.index') }}" class="glass-card shadow text-center">
-                    <div class="icon-circle">
-                        <i class="bi bi-box-seam"></i>
-                    </div>
-                    <span class="fw-bold">INVENTARIO</span>
-                </a>
-            </div>
+
 
             <div class="col-6 col-md-4 col-lg-3">
                 <a href="{{ route('purchases.index') }}" class="glass-card shadow">

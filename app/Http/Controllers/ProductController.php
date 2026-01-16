@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf; // Importamos la librería para el PDF
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ProductController extends Controller
 {
@@ -15,7 +15,11 @@ class ProductController extends Controller
     public function index()
     {
         $products = Product::orderBy('name')->get();
-        return view('products.index', compact('products'));
+
+        // Calculamos el capital también aquí por si la vista lo requiere
+        $valorTotalBodega = $products->sum(fn($p) => $p->stock * $p->price);
+
+        return view('products.index', compact('products', 'valorTotalBodega'));
     }
 
     /**
@@ -81,18 +85,17 @@ class ProductController extends Controller
 
     /**
      * VISTA DE INVENTARIO PROFESIONAL
-     * Aquí corregimos la ruta de la vista para que no te dé error 404.
      */
     public function inventory()
     {
-        $products = Product::all();
+        $products = Product::orderBy('name')->get();
 
-        // Calculamos el valor total de la mercancía para el dueño
+        // Calculamos el valor total de la mercancía
         $valorTotalBodega = $products->sum(function($product) {
             return $product->stock * $product->price;
         });
 
-        // IMPORTANTE: Ruta corregida según tu estructura de carpetas
+        // Retorna la vista profesional con el capital calculado
         return view('products.inventory.index', compact('products', 'valorTotalBodega'));
     }
 
@@ -102,10 +105,14 @@ class ProductController extends Controller
     public function generateInventoryPDF()
     {
         $products = Product::orderBy('name')->get();
-        $valorTotal = $products->sum(fn($p) => $p->stock * $p->price);
 
-        // Cargamos la vista del reporte (Debes crearla en resources/views/products/inventory/pdf.blade.php)
-        $pdf = Pdf::loadView('products.inventory.pdf', compact('products', 'valorTotal'));
+        // Usamos el mismo nombre de variable que en la vista para evitar confusiones
+        $valorTotalBodega = $products->sum(fn($p) => $p->stock * $p->price);
+
+        $pdf = Pdf::loadView('products.inventory.pdf', [
+            'products' => $products,
+            'valorTotal' => $valorTotalBodega // El PDF suele usar 'valorTotal' en su plantilla
+        ]);
 
         return $pdf->download('Inventario_Total_'.date('d-m-Y').'.pdf');
     }
