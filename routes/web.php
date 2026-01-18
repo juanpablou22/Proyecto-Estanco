@@ -44,8 +44,12 @@ Route::get('/sales/report/pdf', [TableController::class, 'downloadPDF'])->name('
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
-    Route::get('/register', [RegisterController::class, 'create'])->name('register');
-    Route::post('/register', [RegisterController::class, 'register']);
+
+    // Registro
+    Route::get('/register', [RegisterController::class, 'create'])->name('register'); //  formulario
+    Route::post('/register', [RegisterController::class, 'store']); // proceso de formulario
+
+    // Recuperación de contraseña
     Route::get('/password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
     Route::post('/password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
     Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
@@ -54,13 +58,8 @@ Route::middleware('guest')->group(function () {
 
 /////////////////////////////////////////////////////ROLES///////////////////////
 //7 Redireccionamiento de vistas a roles 
-Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/admin', [AdminController::class, 'index'])->name('admin.dashboard');
-});
 
-Route::middleware(['auth', 'role:empleado'])->group(function () {
-    Route::get('/empleado', [EmpleadoController::class, 'index'])->name('empleado.dashboard');
-});
+
 //////////////////////////////////////////////////////ROLES//////////////////////
 
 // Verificación de email
@@ -80,3 +79,10 @@ Route::middleware('auth')->group(function () {
 
 // Inicio
 Route::get('/', fn() => redirect()->route('login'));
+
+
+
+Route::middleware('auth')->group(function () {
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
+    Route::get('/dashboard', [HomeController::class, 'index']);
+});
