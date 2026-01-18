@@ -12,6 +12,10 @@ use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\Auth\ConfirmPasswordController;
 use App\Http\Controllers\HomeController;
 
+//////////////////ROLES/////////////////
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\EmpleadoController;
+//////////////////ROLES/////////////////
 //LOGICA LOGIN
 use PHPUnit\Metadata\Group;
 
@@ -35,19 +39,29 @@ Route::post('/tables/{table}/add-product', [TableController::class, 'addProduct'
 Route::delete('/orders/{order}', [TableController::class, 'removeProduct'])->name('orders.remove');
 Route::get('/sales-report', [TableController::class, 'salesReport'])->name('sales.report');
 Route::get('/sales/report/pdf', [TableController::class, 'downloadPDF'])->name('sales.pdf');
-
+/////////////////////////////////////////////////////////
 //Logica Login,Registro y acceso
-// Invitados
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
-    Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+    Route::get('/register', [RegisterController::class, 'create'])->name('register');
     Route::post('/register', [RegisterController::class, 'register']);
     Route::get('/password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
     Route::post('/password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
     Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
     Route::post('/password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
 });
+
+/////////////////////////////////////////////////////ROLES///////////////////////
+//7 Redireccionamiento de vistas a roles 
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/admin', [AdminController::class, 'index'])->name('admin.dashboard');
+});
+
+Route::middleware(['auth', 'role:empleado'])->group(function () {
+    Route::get('/empleado', [EmpleadoController::class, 'index'])->name('empleado.dashboard');
+});
+//////////////////////////////////////////////////////ROLES//////////////////////
 
 // Verificación de email
 Route::middleware('auth')->group(function () {
@@ -66,4 +80,3 @@ Route::middleware('auth')->group(function () {
 
 // Inicio
 Route::get('/', fn() => redirect()->route('login'));
-
