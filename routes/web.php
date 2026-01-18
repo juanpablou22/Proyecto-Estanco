@@ -12,6 +12,7 @@ use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\Auth\ConfirmPasswordController;
 use App\Http\Controllers\HomeController;
 
+
 //////////////////ROLES/////////////////
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\EmpleadoController;
@@ -59,7 +60,8 @@ Route::middleware('guest')->group(function () {
 /////////////////////////////////////////////////////ROLES///////////////////////
 //7 Redireccionamiento de vistas a roles 
 
-
+Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+Route::post('/register', [RegisterController::class, 'register']);
 //////////////////////////////////////////////////////ROLES//////////////////////
 
 // Verificación de email

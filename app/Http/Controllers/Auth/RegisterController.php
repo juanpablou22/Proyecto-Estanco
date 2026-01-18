@@ -4,52 +4,46 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Request;
+use Illuminate\Auth\Events\Registered;
 
 class RegisterController extends Controller
 {
-    /**
-     * Muestra la vista de registro
-     */
-    public function create()
+    public function showRegistrationForm()
     {
-        return view('auth.register');
+        return view('auth.register'); // Asegúrate que esta vista Blade exista
     }
 
-    /**
-     * proceso de registro de un nuevo usuario.
-     */
-    public function store(Request $request)
+    public function register(Request $request)
     {
-        // Validación de datos
-        $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role'     => ['required', 'string', 'in:admin,empleado'], // validamos rol
+        $this->validator($request->all())->validate();
+
+        event(new Registered($user = $this->create($request->all())));
+
+        auth()->login($user);
+
+        return redirect('/home'); // O la ruta que prefieras
+    }
+
+    protected function validator(array $data)
+    {
+        return Validator::make($data, [
+            'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'max:255', 'unique:users'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'role' => ['required', 'in:admin,empleado'],
         ]);
+    }
 
-        // Crea usuario
-        $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
+    protected function create(array $data)
+    {
+        return User::create([
+            'name' => $data['name'],
+            'username' => $data['username'],
+            'password' => Hash::make($data['password']),
+            'role' => $data['role'],
         ]);
-
-        // Asigna un rol con Spatie
-        $user->assignRole($request->role);
-
-        // ventana de evento de registro
-        event(new Registered($user));
-
-        // Autenticador
-        Auth::login($user);
-
-        // Redirecciona
-        return redirect()->route('home');
     }
 }
