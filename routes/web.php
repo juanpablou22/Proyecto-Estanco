@@ -3,14 +3,14 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TableController;
-//LOGICA LOGIN 
+use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\HomeController;
+// LÓGICA DE AUTENTICACIÓN
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\VerificationController;
-use App\Http\Controllers\Auth\ConfirmPasswordController;
-use App\Http\Controllers\HomeController;
 
 
 //////////////////ROLES/////////////////
@@ -20,19 +20,38 @@ use App\Http\Controllers\EmpleadoController;
 //LOGICA LOGIN
 use PHPUnit\Metadata\Group;
 
-Route::get('/', function () {
-    return view('welcome');
+// 2. DASHBOARD PRINCIPAL
+Route::middleware('auth')->group(function () {
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
+    Route::get('/dashboard', [HomeController::class, 'index']);
 });
 
-// Rutas para Productos
-Route::resource('products', ProductController::class);
+// 3. MÓDULO DE MESAS Y VENTAS (Gestión de consumo)
+Route::middleware('auth')->group(function () {
+    Route::resource('tables', TableController::class);
+    Route::post('/tables/{table}/open', [TableController::class, 'open'])->name('tables.open');
+    Route::post('/tables/{table}/close', [TableController::class, 'close'])->name('tables.close');
+    Route::get('/tables/{table}/show', [TableController::class, 'show'])->name('tables.show');
+    Route::post('/tables/{table}/add-product', [TableController::class, 'addProduct'])->name('tables.add-product');
+    Route::delete('/orders/{order}', [TableController::class, 'removeProduct'])->name('orders.remove');
+});
 
-// Rutas base para Mesas
-Route::resource('tables', TableController::class);
+// 4. MÓDULO DE INVENTARIO (Catálogo y Stock)
+Route::middleware('auth')->group(function () {
+    Route::resource('products', ProductController::class);
+    // Ruta corregida para que el controlador apunte a products.inventory.index
+    Route::get('/inventory', [ProductController::class, 'inventory'])->name('inventory.index');
+    // Reporte de Inventario (Opcional)
+    Route::get('/inventory/pdf', [ProductController::class, 'generateInventoryPDF'])->name('inventory.pdf');
+});
 
-// Lógica de estados de mesa
-Route::post('/tables/{table}/open', [TableController::class, 'open'])->name('tables.open');
-Route::post('/tables/{table}/close', [TableController::class, 'close'])->name('tables.close');
+// 5. MÓDULO DE SURTIDO (Entrada de mercancía y costos)
+Route::middleware('auth')->group(function () {
+    Route::get('/surtido', [PurchaseController::class, 'index'])->name('purchases.index');
+    Route::post('/surtido', [PurchaseController::class, 'store'])->name('purchases.store');
+    // ANEXO: Ruta para el reporte PDF de compras/surtido
+    Route::get('/surtido/pdf', [PurchaseController::class, 'generatePDF'])->name('purchases.pdf');
+});
 
 // Lógica de Pedidos (AQUÍ ESTÁ LA SOLUCIÓN AL ERROR)
 Route::get('/tables/{table}/show', [TableController::class, 'show'])->name('tables.show');

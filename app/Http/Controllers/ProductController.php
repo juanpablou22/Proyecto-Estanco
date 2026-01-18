@@ -5,16 +5,21 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ProductController extends Controller
 {
     /**
-     * Muestra la lista de productos del estanco.
+     * Muestra la lista de productos (Gestión CRUD).
      */
     public function index()
     {
-        $products = Product::all();
-        return view('products.index', compact('products'));
+        $products = Product::orderBy('name')->get();
+
+        // Calculamos el capital también aquí por si la vista lo requiere
+        $valorTotalBodega = $products->sum(fn($p) => $p->stock * $p->price);
+
+        return view('products.index', compact('products', 'valorTotalBodega'));
     }
 
     /**
@@ -26,14 +31,14 @@ class ProductController extends Controller
     }
 
     /**
-     * Guarda un nuevo producto en la base de datos (Inventario).
+     * Guarda un nuevo producto en la base de datos.
      */
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required',
-            'price' => 'required|numeric',
-            'stock' => 'required|integer',
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
         ]);
 
         Product::create($request->all());
@@ -43,11 +48,10 @@ class ProductController extends Controller
     }
 
     /**
-     * Muestra el formulario para editar un producto existente.
+     * Muestra el formulario para editar un producto.
      */
     public function edit(Product $product)
     {
-        // Carga la vista edit.blade.php pasando el producto seleccionado
         return view('products.edit', compact('product'));
     }
 
@@ -62,7 +66,6 @@ class ProductController extends Controller
             'stock' => 'required|integer',
         ]);
 
-        // Actualiza los datos con lo que viene del formulario
         $product->update($request->all());
 
         return redirect()->route('products.index')
@@ -78,5 +81,39 @@ class ProductController extends Controller
 
         return redirect()->route('products.index')
                          ->with('success', 'Producto eliminado del sistema.');
+    }
+
+    /**
+     * VISTA DE INVENTARIO PROFESIONAL
+     */
+    public function inventory()
+    {
+        $products = Product::orderBy('name')->get();
+
+        // Calculamos el valor total de la mercancía
+        $valorTotalBodega = $products->sum(function($product) {
+            return $product->stock * $product->price;
+        });
+
+        // Retorna la vista profesional con el capital calculado
+        return view('products.inventory.index', compact('products', 'valorTotalBodega'));
+    }
+
+    /**
+     * GENERAR REPORTE PDF DEL INVENTARIO
+     */
+    public function generateInventoryPDF()
+    {
+        $products = Product::orderBy('name')->get();
+
+        // Usamos el mismo nombre de variable que en la vista para evitar confusiones
+        $valorTotalBodega = $products->sum(fn($p) => $p->stock * $p->price);
+
+        $pdf = Pdf::loadView('products.inventory.pdf', [
+            'products' => $products,
+            'valorTotal' => $valorTotalBodega // El PDF suele usar 'valorTotal' en su plantilla
+        ]);
+
+        return $pdf->download('Inventario_Total_'.date('d-m-Y').'.pdf');
     }
 }

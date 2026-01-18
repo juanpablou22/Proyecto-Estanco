@@ -2,49 +2,92 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reporte de Ventas - Estanco POS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <style>
+        body {
+            /* Aplicamos el fondo con una capa de oscuridad del 80% */
+            background-image: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),
+                              url('/images/fondo registro ventas.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+        }
+
+        h2 {
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Tarjetas con efecto cristal */
+        .card {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            border-radius: 15px !important;
+            border: none !important;
+        }
+
+        /* Caja de venta total resaltada */
+        .total-box {
+            background: rgba(0, 0, 0, 0.4) !important;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .table-dark {
+            background-color: #212529 !important;
+        }
+
+        .form-label {
+            color: #495057 !important;
+        }
+    </style>
 </head>
-<body class="bg-light">
+<body>
     <div class="container mt-5 mb-5">
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4 text-white">
             <div class="d-flex gap-3 align-items-center">
-                <a href="{{ route('tables.index') }}" class="btn btn-outline-secondary">
+                <a href="{{ route('tables.index') }}" class="btn btn-outline-light">
                     <i class="bi bi-arrow-left"></i> Volver a Mesas
                 </a>
-                <h2 class="mb-0 fw-bold text-dark">Historial de Ventas</h2>
-                <a href="{{ route('sales.pdf', ['fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin]) }}" class="btn btn-danger shadow-sm">
-                    <i class="bi bi-file-earmark-pdf"></i> Descargar PDF Filtrado
+                <h2 class="mb-0 fw-bold">Historial de Ventas</h2>
+                <a href="{{ route('sales.pdf', ['fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin]) }}" class="btn btn-danger shadow-sm fw-bold">
+                    <i class="bi bi-file-earmark-pdf"></i> PDF
                 </a>
             </div>
 
-            <div class="bg-dark text-white p-3 rounded shadow text-end">
-                <small class="text-uppercase opacity-75 fw-semibold">Venta en Periodo Seleccionado:</small>
+            <div class="total-box p-3 rounded shadow text-end">
+                <small class="text-uppercase opacity-75 fw-semibold">Venta Total en Periodo:</small>
                 <h3 class="mb-0 text-warning fw-bold">$ {{ number_format($totalGeneral, 0) }}</h3>
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body bg-white p-4">
+        <div class="card border-0 shadow-lg mb-4">
+            <div class="card-body p-4">
                 <form action="{{ route('sales.report') }}" method="GET" class="row g-3 align-items-end">
                     <div class="col-md-3">
-                        <label class="form-label fw-bold text-secondary small"><i class="bi bi-calendar-event"></i> Fecha Inicio</label>
-                        <input type="date" name="fecha_inicio" class="form-control border-primary-subtle" value="{{ $fecha_inicio }}">
+                        <label class="form-label fw-bold small"><i class="bi bi-calendar-event"></i> Fecha Inicio</label>
+                        <input type="date" name="fecha_inicio" class="form-control" value="{{ $fecha_inicio }}">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label fw-bold text-secondary small"><i class="bi bi-calendar-check"></i> Fecha Fin</label>
-                        <input type="date" name="fecha_fin" class="form-control border-primary-subtle" value="{{ $fecha_fin }}">
+                        <label class="form-label fw-bold small"><i class="bi bi-calendar-check"></i> Fecha Fin</label>
+                        <input type="date" name="fecha_fin" class="form-control" value="{{ $fecha_fin }}">
                     </div>
                     <div class="col-md-3">
-                        <button type="submit" class="btn btn-primary w-100 fw-bold">
-                            <i class="bi bi-search"></i> Filtrar Reporte
+                        <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm">
+                            <i class="bi bi-filter"></i> FILTRAR
                         </button>
                     </div>
                     <div class="col-md-3">
-                        <a href="{{ route('sales.report') }}" class="btn btn-dark w-100 fw-bold">
-                            <i class="bi bi-arrow-counterclockwise"></i> Ver Hoy
+                        <a href="{{ route('sales.report') }}" class="btn btn-dark w-100 fw-bold shadow-sm">
+                            <i class="bi bi-arrow-counterclockwise"></i> VER HOY
                         </a>
                     </div>
                 </form>
@@ -53,11 +96,11 @@
 
         <div class="row mb-4">
             <div class="col-12">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0 py-1 fw-semibold"><i class="bi bi-calculator"></i> Cuadre de Caja (Resumen por Método)</h5>
+                <div class="card border-0 shadow-lg">
+                    <div class="card-header bg-primary text-white py-3">
+                        <h5 class="mb-0 fw-bold"><i class="bi bi-calculator"></i> Cuadre de Caja (Resumen por Método)</h5>
                     </div>
-                    <div class="card-body bg-white">
+                    <div class="card-body">
                         <div class="row text-center">
                             @forelse($totalesPorMetodo as $metodo)
                                 <div class="col-md-3 border-end">
@@ -73,7 +116,7 @@
             </div>
         </div>
 
-        <div class="card shadow border-0 overflow-hidden">
+        <div class="card shadow-lg border-0 overflow-hidden">
             <div class="card-body p-0">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-dark">
@@ -88,7 +131,7 @@
                         @forelse($sales as $sale)
                         <tr>
                             <td class="ps-4 text-muted small">{{ $sale->created_at->format('d/m/Y h:i A') }}</td>
-                            <td><span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3">{{ $sale->table_name }}</span></td>
+                            <td><span class="badge bg-secondary px-3">{{ $sale->table_name }}</span></td>
                             <td>
                                 @if($sale->payment_method == 'Efectivo')
                                     <i class="bi bi-cash text-success"></i>
@@ -116,5 +159,6 @@
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
