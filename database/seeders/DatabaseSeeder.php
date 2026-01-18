@@ -18,16 +18,18 @@ class DatabaseSeeder extends Seeder
         // Crear usuario Admin de prueba
         $admin = User::factory()->create([
             'name' => 'Admin User',
-            'email' => 'admin@example.com',
-            'password' => bcrypt('password'), // contraseña: password
+            'username' => 'admin', // Cambiado: de 'email' a 'username'
+            'password' => bcrypt('password'),
+            'role' => 'admin', // Asegúrate de asignar el rol también en la columna si es necesario
         ]);
         $admin->assignRole('admin');
 
         // Crear usuario Empleado de prueba
         $empleado = User::factory()->create([
             'name' => 'Empleado User',
-            'email' => 'empleado@example.com',
-            'password' => bcrypt('password'), // contraseña: password
+            'username' => 'empleado', // Cambiado: de 'email' a 'username'
+            'password' => bcrypt('password'),
+            'role' => 'empleado',
         ]);
         $empleado->assignRole('empleado');
     }

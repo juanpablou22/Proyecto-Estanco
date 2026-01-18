@@ -25,20 +25,18 @@ class UserFactory extends Factory
     {
         return [
             'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
+            // Cambiado de 'email' a 'username' para coincidir con tu migración
+            'username' => fake()->unique()->userName(),
+            // 'email_verified_at' ha sido eliminado porque la columna ya no existe
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            // Opcional: puedes definir un rol por defecto aquí si lo deseas
+            'role' => 'empleado',
         ];
     }
 
     /**
-     * Indicate that the model's email address should be unverified.
+     * Ya no es necesario el método unverified() ya que no existe la columna email_verified_at.
+     * Si decides mantenerlo por estructura, debería estar vacío o comentarizado.
      */
-    public function unverified(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
-    }
 }

@@ -14,7 +14,6 @@
         }
 
         body {
-            /* Imagen de fondo profesional */
             background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),
                         url('https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?q=80&w=2070&auto=format&fit=crop');
             background-size: cover;
@@ -76,17 +75,23 @@
 </head>
 <body>
 
-    <nav class="navbar navbar-dark navbar-custom px-4 py-3 mb-5">
+    <nav class="navbar navbar-dark navbar-custom px-4 py-3 mb-4">
         <div class="container-fluid">
-            <span class="navbar-brand fw-bold">
+            <span class="navbar-brand fw-bold text-uppercase">
                 <i class="bi bi-shield-check text-warning me-2"></i>ESTANCO POS
             </span>
             <div class="d-flex align-items-center">
-                <span class="me-3 d-none d-md-inline opacity-75">Administrador</span>
-                <form action="{{ route('logout') }}" method="POST">
+                <div class="text-end me-3">
+                    <div class="fw-bold lh-1">{{ Auth::user()->name }}</div>
+                    <small class="text-warning small opacity-75 text-uppercase" style="font-size: 0.7rem;">
+                        {{ Auth::user()->role == 'admin' ? 'Administrador' : 'Empleado' }}
+                    </small>
+                </div>
+
+                <form action="{{ route('logout') }}" method="POST" id="logout-form-dashboard">
                     @csrf
                     <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
-                        <i class="bi bi-power me-1"></i> Cerrar Sesión
+                        <i class="bi bi-power me-1"></i> Salir
                     </button>
                 </form>
             </div>
@@ -94,21 +99,27 @@
     </nav>
 
     <div class="container">
-        <div class="row mb-5">
+        @if(session('error'))
+            <div class="alert alert-danger border-0 bg-danger text-white shadow-sm mb-4">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ session('error') }}
+            </div>
+        @endif
+
+        <div class="row mb-5 align-items-center">
             <div class="col-md-8">
-                <h1 class="fw-bold">Panel de Control</h1>
-                <p class="text-white-50">Bienvenido de nuevo. Aquí tienes el resumen de tu negocio hoy.</p>
+                <h1 class="fw-bold mb-0">Panel de Control</h1>
+                <p class="text-white-50">Gestiona las operaciones del establecimiento.</p>
             </div>
             <div class="col-md-4">
-                <div class="stat-card">
-                    <span class="small text-white-50">MESAS ABIERTAS</span>
+                <div class="stat-card shadow-sm">
+                    <span class="small text-white-50 text-uppercase fw-bold">Mesas en Servicio</span>
                     <h3 class="fw-bold mb-0 text-warning">{{ $mesasActivas ?? '0' }}</h3>
                 </div>
             </div>
         </div>
 
-        <div class="row g-4">
-
+        <div class="row g-4 justify-content-center">
+            {{-- SECCIÓN MESAS: Visible para todos --}}
             <div class="col-6 col-md-4 col-lg-3">
                 <a href="{{ route('tables.index') }}" class="glass-card shadow">
                     <div class="icon-circle">
@@ -118,40 +129,40 @@
                 </a>
             </div>
 
+            {{-- SECCIÓN ADMINISTRATIVA: Solo Admin --}}
+            @if(Auth::user()->role == 'admin')
+                <div class="col-6 col-md-4 col-lg-3">
+                    <a href="{{ route('purchases.index') }}" class="glass-card shadow">
+                        <div class="icon-circle">
+                            <i class="bi bi-truck"></i>
+                        </div>
+                        <span class="fw-bold">SURTIDO</span>
+                    </a>
+                </div>
 
+                <div class="col-6 col-md-4 col-lg-3">
+                    <a href="{{ route('sales.report') }}" class="glass-card shadow">
+                        <div class="icon-circle">
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
+                        <span class="fw-bold">REPORTES</span>
+                    </a>
+                </div>
 
-            <div class="col-6 col-md-4 col-lg-3">
-                <a href="{{ route('purchases.index') }}" class="glass-card shadow">
-                    <div class="icon-circle">
-                        <i class="bi bi-truck"></i>
-                    </div>
-                    <span class="fw-bold">SURTIDO</span>
-                </a>
-            </div>
-
-            <div class="col-6 col-md-4 col-lg-3">
-                <a href="{{ route('sales.report') }}" class="glass-card shadow">
-                    <div class="icon-circle">
-                        <i class="bi bi-graph-up-arrow"></i>
-                    </div>
-                    <span class="fw-bold">REPORTES</span>
-                </a>
-            </div>
-
-            <div class="col-6 col-md-4 col-lg-3">
-                <a href="{{ route('products.index') }}" class="glass-card shadow">
-                    <div class="icon-circle">
-                        <i class="bi bi-pencil-square"></i>
-                    </div>
-                    <span class="fw-bold">PRODUCTOS</span>
-                </a>
-            </div>
-
+                <div class="col-6 col-md-4 col-lg-3">
+                    <a href="{{ route('products.index') }}" class="glass-card shadow">
+                        <div class="icon-circle">
+                            <i class="bi bi-pencil-square"></i>
+                        </div>
+                        <span class="fw-bold">PRODUCTOS</span>
+                    </a>
+                </div>
+            @endif
         </div>
 
         <div class="row mt-5">
             <div class="col text-center opacity-50 small">
-                <p>Estanco POS v1.0 | Sistema de Gestión de Inventario y Ventas</p>
+                <p>Estanco POS v1.0 | Nivel de acceso: <span class="text-warning fw-bold">{{ Auth::user()->role }}</span></p>
             </div>
         </div>
     </div>

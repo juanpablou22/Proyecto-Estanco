@@ -6,33 +6,60 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
+        // 1. Nos aseguramos de que 'username' exista antes de intentar poner algo 'after'
+        if (!Schema::hasColumn('users', 'username')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->string('username')->unique()->after('id');
+            });
+        }
+
+        // 2. Ahora que 'username' existe sí o sí, añadimos el rol y quitamos el email
         Schema::table('users', function (Blueprint $table) {
-            // Agregar 'role' si no existe
+            // Agregar 'role'
             if (!Schema::hasColumn('users', 'role')) {
                 $table->string('role')->default('empleado')->after('username');
             }
 
-            // Eliminar 'email' y 'email_verified_at' si existen
+            // Eliminar 'email' de forma segura
             if (Schema::hasColumn('users', 'email')) {
                 $table->dropColumn('email');
             }
 
+            // Eliminar 'email_verified_at' de forma segura
             if (Schema::hasColumn('users', 'email_verified_at')) {
                 $table->dropColumn('email_verified_at');
             }
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Restaurar campos eliminados
-            $table->string('email')->unique()->after('role');
-            $table->timestamp('email_verified_at')->nullable()->after('email');
+            // Restaurar campos originales
+            if (!Schema::hasColumn('users', 'email')) {
+                $table->string('email')->unique()->after('id');
+            }
 
-            // No eliminar 'username' ni 'role' si ya están en uso
+            if (!Schema::hasColumn('users', 'email_verified_at')) {
+                $table->timestamp('email_verified_at')->nullable()->after('email');
+            }
+
+            // Eliminar campos personalizados
+            if (Schema::hasColumn('users', 'role')) {
+                $table->dropColumn('role');
+            }
+
+            if (Schema::hasColumn('users', 'username')) {
+                $table->dropColumn('username');
+            }
         });
     }
 };

@@ -13,20 +13,16 @@ class User extends Authenticatable
 
     /**
      * Atributos que se pueden asignar masivamente.
-     *
-     * @var array<int, string>
      */
     protected $fillable = [
         'name',
-        'username',
+        'username', // Correcto
         'password',
-        'role',
+        'role',     // Correcto
     ];
 
     /**
      * Atributos ocultos en la serialización.
-     *
-     * @var array<int, string>
      */
     protected $hidden = [
         'password',
@@ -35,8 +31,6 @@ class User extends Authenticatable
 
     /**
      * Atributos que deben ser casteados.
-     *
-     * @return array<string, string>
      */
     protected function casts(): array
     {
@@ -46,11 +40,10 @@ class User extends Authenticatable
     }
 
     /**
-     * Usar 'username' como identificador de autenticación.
-     *
-     * @return string
+     * Esta es la forma estándar de indicarle a Laravel
+     * que use 'username' para la autenticación.
      */
-    public function getAuthIdentifierName()
+    public function username()
     {
         return 'username';
     }
