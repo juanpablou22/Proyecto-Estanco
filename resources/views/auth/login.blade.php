@@ -2,8 +2,6 @@
 
 @section('content')
 
-
-
     <!-- Formulario de login -->
     <div class="container mt-4">
         <div class="row justify-content-center">
