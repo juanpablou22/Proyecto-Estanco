@@ -110,12 +110,7 @@
                 <h1 class="fw-bold mb-0">Panel de Control</h1>
                 <p class="text-white-50">Gestiona las operaciones del establecimiento.</p>
             </div>
-            <div class="col-md-4">
-                <div class="stat-card shadow-sm">
-                    <span class="small text-white-50 text-uppercase fw-bold">Mesas en Servicio</span>
-                    <h3 class="fw-bold mb-0 text-warning">{{ $mesasActivas ?? '0' }}</h3>
-                </div>
-            </div>
+
         </div>
 
         <div class="row g-4 justify-content-center">

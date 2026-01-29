@@ -115,13 +115,11 @@
         <div class="container">
             <div class="d-flex align-items-center">
                 <a href="{{ route('home') }}" class="btn btn-outline-glass btn-sm me-3">
-                    <i class="bi bi-arrow-left"></i> Panel
+                    <i class="bi bi-house-door-fill me-2"></i> Menu Principal
                 </a>
                 <span class="navbar-brand mb-0 h4 fw-bold">CONTROL DE INVENTARIO</span>
             </div>
-            <a href="{{ route('inventory.pdf') }}" class="btn btn-danger btn-sm px-3 shadow-sm">
-                <i class="bi bi-file-earmark-pdf-fill me-1"></i> Reporte
-            </a>
+
         </div>
     </nav>
 

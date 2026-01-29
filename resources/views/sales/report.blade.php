@@ -9,7 +9,6 @@
 
     <style>
         body {
-            /* Aplicamos el fondo con una capa de oscuridad del 80% */
             background-image: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),
                               url('/images/fondo registro ventas.png');
             background-size: cover;
@@ -24,7 +23,6 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
 
-        /* Tarjetas con efecto cristal */
         .card {
             background: rgba(255, 255, 255, 0.95) !important;
             backdrop-filter: blur(10px);
@@ -32,7 +30,6 @@
             border: none !important;
         }
 
-        /* Caja de venta total resaltada */
         .total-box {
             background: rgba(0, 0, 0, 0.4) !important;
             backdrop-filter: blur(5px);
@@ -40,12 +37,22 @@
             color: white;
         }
 
-        .table-dark {
-            background-color: #212529 !important;
+        /* Estilo para el botón Volver mejorado */
+        .btn-dashboard {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            transition: all 0.3s;
         }
 
-        .form-label {
-            color: #495057 !important;
+        .btn-dashboard:hover {
+            background: white;
+            color: black;
+            transform: translateX(-5px);
+        }
+
+        .table-dark {
+            background-color: #212529 !important;
         }
     </style>
 </head>
@@ -54,10 +61,12 @@
 
         <div class="d-flex justify-content-between align-items-center mb-4 text-white">
             <div class="d-flex gap-3 align-items-center">
-                <a href="{{ route('tables.index') }}" class="btn btn-outline-light">
-                    <i class="bi bi-arrow-left"></i> Volver a Mesas
+                <a href="{{ route('home') }}" class="btn btn-dashboard rounded-pill px-4">
+                    <i class="bi bi-house-door-fill me-2"></i> Menu Principal
                 </a>
+
                 <h2 class="mb-0 fw-bold">Historial de Ventas</h2>
+
                 <a href="{{ route('sales.pdf', ['fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin]) }}" class="btn btn-danger shadow-sm fw-bold">
                     <i class="bi bi-file-earmark-pdf"></i> PDF
                 </a>
@@ -98,7 +107,7 @@
             <div class="col-12">
                 <div class="card border-0 shadow-lg">
                     <div class="card-header bg-primary text-white py-3">
-                        <h5 class="mb-0 fw-bold"><i class="bi bi-calculator"></i> Cuadre de Caja (Resumen por Método)</h5>
+                        <h5 class="mb-0 fw-bold"><i class="bi bi-calculator"></i> Cuadre de Caja</h5>
                     </div>
                     <div class="card-body">
                         <div class="row text-center">
@@ -108,7 +117,7 @@
                                     <h4 class="fw-bold mb-0 text-primary">$ {{ number_format($metodo->total, 0) }}</h4>
                                 </div>
                             @empty
-                                <div class="col-12 text-muted py-2">No se encontraron ventas para este periodo.</div>
+                                <div class="col-12 text-muted py-2">No hay ventas registradas.</div>
                             @endforelse
                         </div>
                     </div>
@@ -133,13 +142,6 @@
                             <td class="ps-4 text-muted small">{{ $sale->created_at->format('d/m/Y h:i A') }}</td>
                             <td><span class="badge bg-secondary px-3">{{ $sale->table_name }}</span></td>
                             <td>
-                                @if($sale->payment_method == 'Efectivo')
-                                    <i class="bi bi-cash text-success"></i>
-                                @elseif($sale->payment_method == 'Nequi')
-                                    <i class="bi bi-phone text-primary"></i>
-                                @else
-                                    <i class="bi bi-credit-card text-info"></i>
-                                @endif
                                 <span class="ms-1 fw-medium text-dark">{{ $sale->payment_method }}</span>
                             </td>
                             <td class="text-end pe-4 font-monospace fw-bold text-dark fs-5">
@@ -148,10 +150,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="4" class="text-center py-5">
-                                <i class="bi bi-info-circle display-4 text-muted"></i>
-                                <p class="mt-2 text-muted fw-semibold">No se registraron ventas en el periodo seleccionado.</p>
-                            </td>
+                            <td colspan="4" class="text-center py-5">No hay datos.</td>
                         </tr>
                         @endforelse
                     </tbody>

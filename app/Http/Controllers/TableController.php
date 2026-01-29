@@ -38,6 +38,22 @@ class TableController extends Controller
     }
 
     /**
+     * NUEVO: Elimina una mesa del sistema.
+     */
+    public function destroy($id)
+    {
+        $table = Table::findOrFail($id);
+
+        // Seguridad: No permitir borrar si la mesa está ocupada
+        if ($table->status === 'ocupada') {
+            return redirect()->back()->with('error', 'No puedes eliminar una mesa que tiene una cuenta abierta.');
+        }
+
+        $table->delete();
+        return redirect()->back()->with('success', 'Mesa eliminada correctamente.');
+    }
+
+    /**
      * Cambia el estado de la mesa a 'ocupada'.
      */
     public function open(Table $table)
@@ -46,7 +62,7 @@ class TableController extends Controller
             'status' => 'ocupada'
         ]);
 
-        return redirect()->route('tables.index')->with('success', 'La ' . $table->name . ' ahora está ocupada.');
+        return redirect()->route('tables.show', $table->id)->with('success', 'Cuenta abierta para ' . $table->name);
     }
 
     /**
@@ -108,13 +124,14 @@ class TableController extends Controller
     }
 
     /**
-     * Cierra la cuenta, REGISTRA LA VENTA con el método de pago y libera la mesa.
+     * Cierra la cuenta, REGISTRA LA VENTA y libera la mesa.
      */
     public function close(Request $request, Table $table)
     {
-        $totalCuenta = Order::where('table_id', $table->id)
-                        ->select(DB::raw('SUM(quantity * price) as total'))
-                        ->first()->total;
+        $orders = Order::where('table_id', $table->id)->get();
+        $totalCuenta = $orders->sum(function($order) {
+            return $order->quantity * $order->price;
+        });
 
         if ($totalCuenta > 0) {
             Sale::create([
@@ -130,19 +147,17 @@ class TableController extends Controller
             'status' => 'disponible'
         ]);
 
-        return redirect()->route('tables.index')->with('success', 'Venta registrada con éxito y mesa liberada.');
+        return redirect()->route('tables.index')->with('success', 'Venta registrada: $' . number_format($totalCuenta, 0) . ' y mesa liberada.');
     }
 
     /**
-     * Muestra el reporte histórico de ventas con FILTROS DE FECHA y cuadre de caja.
+     * Reporte histórico de ventas.
      */
     public function salesReport(Request $request)
     {
-        // 1. Obtener las fechas del filtro o usar el día actual por defecto
         $fecha_inicio = $request->get('fecha_inicio', now()->format('Y-m-d'));
         $fecha_fin = $request->get('fecha_fin', now()->format('Y-m-d'));
 
-        // 2. Consulta filtrada de ventas
         $sales = Sale::whereDate('created_at', '>=', $fecha_inicio)
                      ->whereDate('created_at', '<=', $fecha_fin)
                      ->orderBy('created_at', 'desc')
@@ -150,7 +165,6 @@ class TableController extends Controller
 
         $totalGeneral = $sales->sum('total');
 
-        // 3. Cuadre de caja filtrado por el mismo rango
         $totalesPorMetodo = Sale::whereDate('created_at', '>=', $fecha_inicio)
                                 ->whereDate('created_at', '<=', $fecha_fin)
                                 ->select('payment_method', DB::raw('SUM(total) as total'))
@@ -161,31 +175,25 @@ class TableController extends Controller
     }
 
     /**
-     * ANEXO: Genera y descarga el reporte de ventas en formato PDF respetando los filtros.
+     * Genera PDF del reporte de ventas.
      */
     public function downloadPDF(Request $request)
     {
-        // 1. Capturar los filtros enviados por la URL
         $fecha_inicio = $request->get('fecha_inicio', now()->format('Y-m-d'));
         $fecha_fin = $request->get('fecha_fin', now()->format('Y-m-d'));
 
-        // 2. Obtener datos filtrados
         $sales = Sale::whereDate('created_at', '>=', $fecha_inicio)
                      ->whereDate('created_at', '<=', $fecha_fin)
-                     ->orderBy('created_at', 'desc')
                      ->get();
 
         $totalGeneral = $sales->sum('total');
-
         $totalesPorMetodo = Sale::whereDate('created_at', '>=', $fecha_inicio)
                                 ->whereDate('created_at', '<=', $fecha_fin)
                                 ->select('payment_method', DB::raw('SUM(total) as total'))
                                 ->groupBy('payment_method')
                                 ->get();
 
-        // 3. Generar el PDF
         $pdf = Pdf::loadView('sales.pdf_report', compact('sales', 'totalGeneral', 'totalesPorMetodo', 'fecha_inicio', 'fecha_fin'));
-
-        return $pdf->download("reporte-ventas-{$fecha_inicio}-a-{$fecha_fin}.pdf");
+        return $pdf->download("reporte-ventas-{$fecha_inicio}.pdf");
     }
 }
