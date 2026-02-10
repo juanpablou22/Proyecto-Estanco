@@ -110,7 +110,7 @@
                     <div class="card shadow {{ $table->status == 'disponible' ? 'border-top border-success border-4' : 'border-top border-danger border-4' }}">
 
                         {{-- BOTÓN ELIMINAR (Solo Admin) --}}
-                        @if(Auth::user()->role == 'admin')
+                        @if(Auth::user()->role == 'admin' || Auth::user()->role == 'empleado')
                             <form action="{{ route('tables.destroy', $table->id) }}" method="POST" onsubmit="return confirm('¿Eliminar esta mesa definitivamente?')">
                                 @csrf
                                 @method('DELETE')
